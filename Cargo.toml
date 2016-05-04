@@ -1,0 +1,17 @@
+[package]
+name = "stash"
+version = "0.1.0"
+authors = ["birryree"]
+license = "Apache 2.0"
+repository = "https://github.com/birryree/stash-rs"
+description = "Client for the Atlassian Stash REST API"
+readme = "README.md"
+keywords = ["stash", "atlassian"]
+
+[lib]
+name = "stash"
+
+[dependencies]
+hyper = "*"
+serde = "*"
+serde_json = "*"
