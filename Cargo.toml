@@ -4,14 +4,22 @@ version = "0.1.0"
 authors = ["birryree"]
 license = "Apache 2.0"
 repository = "https://github.com/birryree/stash-rs"
+documentation = "https://birryree.github.com/stash-rs"
+homepage = "https://stash-rs.github.com"
 description = "Client for the Atlassian Stash REST API"
 readme = "README.md"
 keywords = ["stash", "atlassian"]
+build = "build.rs"
 
 [lib]
 name = "stash"
+
+[build-dependencies]
+serde_codegen = "*"
+syntex = "*"
 
 [dependencies]
 hyper = "*"
 serde = "*"
 serde_json = "*"
+url = "*"
