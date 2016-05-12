@@ -3,62 +3,7 @@ extern crate serde;
 extern crate serde_json;
 
 use self::super::{Stash, StashError};
-
-use std::collections::HashMap;
-use std::option::Option;
-use url::form_urlencoded;
-
-include!(concat!(env!("OUT_DIR"), "/core.rs"));
-
-#[derive(Default)]
-pub struct ProjectListParams {
-    params: HashMap<&'static str, String>
-}
-
-impl ProjectListParams {
-    pub fn builder() -> ProjectListParamsBuilder {
-        ProjectListParamsBuilder::new()
-    }
-    
-    /// Generate a query string of the parameters. Returns None if no options are defined.
-    pub fn to_query_string(&self) -> Option<String> {
-        if self.params.is_empty() {
-            None
-        } else {
-            let query_string = form_urlencoded::Serializer::new(String::new())
-                .extend_pairs(&self.params)
-                .finish();
-            Some(query_string)
-        }
-    }
-}
-
-#[derive(Default)]
-pub struct ProjectListParamsBuilder {
-    params: HashMap<&'static str, String>
-}
-
-impl ProjectListParamsBuilder {
-    pub fn new() -> ProjectListParamsBuilder {
-        ProjectListParamsBuilder { ..Default::default() }
-    }
-    
-    // set the 'name' field of the Projects request
-    pub fn repo_name<'a>(&mut self, arg: String) -> &mut ProjectListParamsBuilder {
-        self.params.insert("name", arg);
-        self
-    }
-    
-    // Set the 'permissions' field of the Projects request
-    pub fn permissions(&mut self, permissions: String) -> &mut ProjectListParamsBuilder {
-        self.params.insert("permissions", permissions);
-        self
-    }
-    
-    pub fn build(&self) -> ProjectListParams {
-        ProjectListParams { params: self.params.clone() }
-    }
-}
+use types::{PagedResponse, Project, Repository, ProjectListParams, ProjectParams};
 
 pub struct Projects<'a> {
     stash: &'a Stash<'a>,
@@ -69,16 +14,43 @@ impl<'a> Projects<'a> {
         Projects { stash: stash }
     }
     
-    fn resource(&self, params: &str) -> String {
-        format!("/projects/{}", params)
+    fn resource(&self, extra: &str) -> String {
+        format!("/projects{}", extra)
+    }
+   
+    /// Get project by a project key 
+    pub fn get_project(&self, key: &str) -> Result<Project, StashError> {
+        self.stash.get::<Project>(&self.resource(&format!("/{}", key)))
+    }
+    
+    /// Create a new project.
+    pub fn create_project(&self, params: &ProjectParams) -> Result<Project, StashError> {
+        let data = try!(serde_json::to_string(&params));
+        self.stash.post::<Project>(&self.resource(""), data.as_bytes())
+    }
+
+    /// Updates a project 
+    pub fn update_project(&self, key: &str, params: &ProjectParams) -> Result<Project, StashError> {
+        let data = try!(serde_json::to_string(&params));
+        self.stash.put::<Project>(&self.resource(&format!("/{}", key)), data.as_bytes())
+    }
+    
+    /// Deletes a project by its key
+    pub fn delete_project(&self, key: &str) -> Result<(), StashError> {
+        self.stash.delete(&self.resource(&format!("/{}", key)))
     }
 
     /// List projects
-    pub fn list(&self, params: &ProjectListParams) -> Result<Vec<Project>, StashError> {
+    pub fn list(&self, params: &ProjectListParams) -> Result<PagedResponse<Project>, StashError> {
         let mut uri = vec![self.resource("")];
         if let Some(query) = params.to_query_string() {
             uri.push(query);
         }
-        self.stash.get::<Vec<Project>>(&uri.join("?"))
+        self.stash.get::<PagedResponse<Project>>(&uri.join("?"))
+    }
+
+    /// Fetches all repositories under a project.
+    pub fn repos(&self, key: &str) -> Result<PagedResponse<Repository>, StashError> {
+        self.stash.get::<PagedResponse<Repository>>(&self.resource(&format!("/{}/repos", key)))
     }
 }

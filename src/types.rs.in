@@ -1,0 +1,137 @@
+use self::super::{Stash};
+
+use url::Url;
+
+/// A generic struct that represents the paged API responses that the
+/// Stash API returns for certain endpoints.
+#[derive(Debug, Deserialize)]
+pub struct PagedResponse<T> {
+    size: u32,
+    limit: u32,
+    #[serde(rename="isLastPage")]
+    is_last_page: bool,
+    values: Vec<T>,
+    start: u32,
+    filter: Option<u32>,
+    #[serde(rename="nextPageStart")]
+    next_page_start: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectParams {
+    #[serde(skip_serializing_if="Option::is_none")]
+    key: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    avatar: Option<String>
+}
+
+#[derive(Default)]
+pub struct ProjectListParams {
+    params: HashMap<&'static str, String>
+}
+
+impl ProjectListParams {
+    pub fn builder() -> ProjectListParamsBuilder {
+        ProjectListParamsBuilder::new()
+    }
+    
+    /// Generate a query string of the parameters. Returns None if no options are defined.
+    pub fn to_query_string(&self) -> Option<String> {
+        if self.params.is_empty() {
+            None
+        } else {
+            let query_string = form_urlencoded::Serializer::new(String::new())
+                .extend_pairs(&self.params)
+                .finish();
+            Some(query_string)
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct ProjectListParamsBuilder {
+    params: HashMap<&'static str, String>
+}
+
+impl ProjectListParamsBuilder {
+    pub fn new() -> ProjectListParamsBuilder {
+        ProjectListParamsBuilder { ..Default::default() }
+    }
+    
+    // set the 'name' field of the Projects request
+    pub fn repo_name<'a>(&mut self, arg: String) -> &mut ProjectListParamsBuilder {
+        self.params.insert("name", arg);
+        self
+    }
+    
+    // Set the 'permissions' field of the Projects request
+    pub fn permissions(&mut self, permissions: String) -> &mut ProjectListParamsBuilder {
+        self.params.insert("permissions", permissions);
+        self
+    }
+    
+    pub fn build(&self) -> ProjectListParams {
+        ProjectListParams { params: self.params.clone() }
+    }
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Project {
+    pub key: String,
+    pub id: u32,
+    pub name: String,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub description: Option<String>,
+    pub public: bool,
+    #[serde(rename="type")]
+    pub project_type: String,
+    pub link: serde_json::Value,
+    pub links: serde_json::Value
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Repository {
+    pub slug: String,
+    pub id: u32,
+    pub name: String,
+    #[serde(rename="scmId")]
+    pub scm: String,
+    pub state: RepositoryState,
+    #[serde(rename="statusMessage")]
+    pub status_message: String,
+    pub forkable: bool,
+    pub project: Project,
+    pub public: bool,
+    #[serde(rename="cloneUrl")]
+    pub clone_url: String,
+    pub link: serde_json::Value,
+    pub links: serde_json::Value
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Branch {
+    pub id: String,
+    #[serde(rename="displayId")]
+    pub display_id: String,
+    #[serde(rename="latestChangeset")]
+    pub latest_changeset: String,
+    #[serde(rename="latestCommit")]
+    pub latest_commit: String,
+    #[serde(rename="isDefault")]
+    pub is_default: bool
+}
+
+#[derive(Debug, Serialize)]
+pub struct RepositoryParams {
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(rename="scmId")]
+    pub scm: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub forkable: Option<bool>
+}

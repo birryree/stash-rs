@@ -52,12 +52,3 @@ macro_rules! wrap_error {
 wrap_error!(SerdeError, Serialization);
 wrap_error!(HyperError, Http);
 wrap_error!(IoError, IO);
-
-/* impl From<SerdeError> for StashError {
-    fn from(error: SerdeError) -> StashError {
-        StashError::Serialization(error)
-}
-
-impl From<HyperError> for StashError {
-    fn from(error: HyperError) ->
-*/

@@ -1,8 +1,0 @@
-// File uses currently-unstable traits and needs to be specially
-// processed.
-
-#[derive(Debug, Deserialize)]
-pub struct Project {
-    key: String,
-    name: String
-}

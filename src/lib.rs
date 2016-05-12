@@ -2,6 +2,8 @@
 
 #![crate_type="lib"]
 
+#[macro_use]
+extern crate serializable_enum;
 extern crate hyper;
 extern crate serde;
 extern crate serde_json;
@@ -10,22 +12,21 @@ extern crate url;
 use serde::de::Deserialize;
 
 pub mod core;
+pub mod repos;
 pub mod errors;
+pub mod types;
 
+pub use types::*;
 pub use errors::StashError;
-use core::{Project, Projects};
+use core::{Projects};
+use repos::{ProjectRepositories};
 
-use hyper::Error;
-use hyper::status::StatusCode;
-use hyper::header::{Authorization, Basic, ContentLength};
+use hyper::header::{Authorization, Basic};
 use hyper::method::Method;
 use hyper::client::RequestBuilder;
 
 
-use std::fmt;
-use std::result;
 use std::io::Read;
-
 
 
 #[derive(Debug)]
@@ -56,6 +57,12 @@ impl<'a> Stash<'a> {
     pub fn projects(&self) -> Projects {
         Projects::new(self)
     }
+    
+    pub fn project_repos<T>(&self, project: T) -> ProjectRepositories
+        where T: Into<String>
+    {
+        ProjectRepositories::new(self, project)
+    }
 
     fn generate_request(&self, method: Method, uri: &str) -> RequestBuilder {
         let url = format!("{}{}", self.host, uri);
@@ -76,6 +83,22 @@ impl<'a> Stash<'a> {
         where T: Deserialize
     {
         self.request(Method::Get, uri, None)
+    }
+    
+    fn post<T>(&self, uri: &str, body: &[u8]) -> Result<T, StashError>
+        where T: Deserialize
+    {
+        self.request(Method::Post, uri, Some(body))
+    }
+    
+    fn delete(&self, uri: &str) -> Result<(), StashError> {
+        self.request::<()>(Method::Delete, uri, None)
+    }
+    
+    fn put<T>(&self, uri: &str, body: &[u8]) -> Result<T, StashError>
+        where T: Deserialize
+    {
+        self.request(Method::Put, uri, Some(body))
     }
 
     fn request<T>(&self, method: Method, uri: &str, body: Option<&'a [u8]>) -> Result<T, StashError>
