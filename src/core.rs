@@ -1,9 +1,7 @@
-extern crate hyper;
-extern crate serde;
-extern crate serde_json;
-
 use self::super::{Stash, StashError};
 use types::{PagedResponse, Project, Repository, ProjectListParams, ProjectParams};
+
+use serde_json;
 
 pub struct Projects<'a> {
     stash: &'a Stash<'a>,

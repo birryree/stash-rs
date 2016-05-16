@@ -1,7 +1,3 @@
-extern crate hyper;
-
-
-
 /// Creates a method with a supplied name, HTTP verb, and resource path.
 macro_rules! create_api_method {
     ($func_name:ident, $verb:ident, $resource:ty) => {

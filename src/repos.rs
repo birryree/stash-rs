@@ -1,9 +1,7 @@
-extern crate hyper;
-extern crate serde;
-extern crate serde_json;
-
 use self::super::{Stash, StashError};
 use types::{Repository, RepositoryParams, PagedResponse};
+
+use serde_json;
 
 pub struct ProjectRepositories<'a> {
     stash: &'a Stash<'a>,
@@ -23,7 +21,7 @@ impl<'a> ProjectRepositories<'a> {
     fn resource(&self, extra: &str) -> String {
         format!("/projects/{}/repos{}", &self.project_key, extra)
     }
-   
+  
     /// List repos under the project key
     pub fn list(&self) -> Result<PagedResponse<Repository>, StashError> {
         self.stash.get::<PagedResponse<Repository>>(&self.resource(""))
