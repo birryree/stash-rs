@@ -1,32 +1,16 @@
-use self::super::{Stash};
-
-use url::Url;
-
 /// A generic struct that represents the paged API responses that the
 /// Stash API returns for certain endpoints.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct PagedResponse<T> {
-    size: u32,
-    limit: u32,
+    pub size: u32,
+    pub limit: u32,
     #[serde(rename="isLastPage")]
-    is_last_page: bool,
-    values: Vec<T>,
-    start: u32,
-    filter: Option<u32>,
+    pub is_last_page: bool,
+    pub values: Vec<T>,
+    pub start: u32,
+    pub filter: Option<u32>,
     #[serde(rename="nextPageStart")]
-    next_page_start: Option<u32>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ProjectParams {
-    #[serde(skip_serializing_if="Option::is_none")]
-    key: Option<String>,
-    #[serde(skip_serializing_if="Option::is_none")]
-    name: Option<String>,
-    #[serde(skip_serializing_if="Option::is_none")]
-    description: Option<String>,
-    #[serde(skip_serializing_if="Option::is_none")]
-    avatar: Option<String>
+    pub next_page_start: Option<u32>,
 }
 
 #[derive(Default)]
@@ -68,9 +52,9 @@ impl ProjectListParamsBuilder {
         self
     }
     
-    // Set the 'permissions' field of the Projects request
-    pub fn permissions(&mut self, permissions: String) -> &mut ProjectListParamsBuilder {
-        self.params.insert("permissions", permissions);
+    // Set the 'permission' field of the Projects request
+    pub fn permissions(&mut self, permission: Permission) -> &mut ProjectListParamsBuilder {
+        self.params.insert("permission", String::from(permission.as_ref()));
         self
     }
     
@@ -99,7 +83,7 @@ pub struct Repository {
     pub id: u32,
     pub name: String,
     #[serde(rename="scmId")]
-    pub scm: String,
+    pub scm: ScmType,
     pub state: RepositoryState,
     #[serde(rename="statusMessage")]
     pub status_message: String,
@@ -125,13 +109,149 @@ pub struct Branch {
     pub is_default: bool
 }
 
+
+#[derive(Default)]
+pub struct RepositoryParamsBuilder {
+    pub name: Option<String>,
+    pub scm: Option<ScmType>,
+    pub forkable: Option<bool>
+}
+
+impl RepositoryParamsBuilder {
+    pub fn new() -> RepositoryParamsBuilder {
+        RepositoryParamsBuilder { ..Default::default() }
+    }
+    
+    pub fn name<T>(&mut self, name: T) -> &mut RepositoryParamsBuilder
+        where T: Into<String>
+    {
+        self.name = Some(name.into());
+        self
+    }
+    
+    pub fn scm(&mut self, scm: ScmType) -> &mut RepositoryParamsBuilder {
+        self.scm = Some(scm);
+        self
+    }
+    
+    pub fn forkable(&mut self, forkable: bool) -> &mut RepositoryParamsBuilder {
+        self.forkable = Some(forkable);
+        self
+    }
+    
+    pub fn build(&self) -> RepositoryParams {
+        RepositoryParams {
+            name: self.name.clone(),
+            scm: self.scm.clone(),
+            forkable: self.forkable
+        }
+    }
+}
+
+
 #[derive(Debug, Serialize)]
 pub struct RepositoryParams {
     #[serde(skip_serializing_if="Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if="Option::is_none")]
     #[serde(rename="scmId")]
-    pub scm: Option<String>,
+    pub scm: Option<ScmType>,
     #[serde(skip_serializing_if="Option::is_none")]
     pub forkable: Option<bool>
+}
+
+impl RepositoryParams {
+    pub fn new<T>(name: Option<T>, scm: Option<ScmType>, forkable: Option<bool>) -> RepositoryParams
+        where T: Into<String>
+    {
+        RepositoryParams {
+            name: name.map(|n| n.into()),
+            scm: scm,
+            forkable: forkable,
+        }
+    }
+    
+    pub fn builder() -> RepositoryParamsBuilder {
+        RepositoryParamsBuilder::new()
+    }
+}
+
+#[derive(Default)]
+pub struct ProjectParamsBuilder {
+    pub key: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub avatar: Option<String>
+}
+
+impl ProjectParamsBuilder {
+    pub fn new() -> ProjectParamsBuilder {
+        ProjectParamsBuilder { ..Default::default() }
+    }
+    
+    pub fn key<T>(&mut self, key: T) -> &mut ProjectParamsBuilder
+        where T: Into<String>
+    {
+        self.key = Some(key.into());
+        self
+    }
+    
+    pub fn name<T>(&mut self, name: T) -> &mut ProjectParamsBuilder
+        where T: Into<String>
+    {
+        self.name = Some(name.into());
+        self
+    }
+    
+    pub fn description<T>(&mut self, description: T) -> &mut ProjectParamsBuilder
+        where T: Into<String>
+    {
+        self.description = Some(description.into());
+        self
+    }
+    
+    pub fn avatar<T>(&mut self, avatar: T) -> &mut ProjectParamsBuilder
+        where T: Into<String>
+    {
+        self.avatar = Some(avatar.into());
+        self
+    }
+    
+    pub fn build(&self) -> ProjectParams {
+        ProjectParams {
+            key: self.key.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            avatar: self.avatar.clone()
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectParams {
+    #[serde(skip_serializing_if="Option::is_none")]
+    key: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    avatar: Option<String>
+}
+
+impl ProjectParams {
+    pub fn new<T>(key: Option<T>, name: Option<T>, description: Option<T>, avatar: Option<T>) -> ProjectParams
+        where T: Into<String>
+    {
+        ProjectParams {
+            key: key.map(|k| k.into()),
+            name: name.map(|n| n.into()),
+            description: description.map(|d| d.into()),
+            avatar: avatar.map(|a| a.into())
+        }
+    }
+    
+    pub fn builder() -> ProjectParamsBuilder {
+        ProjectParamsBuilder::new()
+    }
 }

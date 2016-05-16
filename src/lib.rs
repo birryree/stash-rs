@@ -44,8 +44,8 @@ pub struct Stash<'a> {
 
 impl<'a> Stash<'a> {
     /// Creates a new `Stash` instance.
-    pub fn new<S>(host: S, client: &'a hyper::Client, credentials: Credentials) -> Stash<'a>
-        where S: Into<String>
+    pub fn new<T>(host: T, client: &'a hyper::Client, credentials: Credentials) -> Stash<'a>
+        where T: Into<String>
     {
         Stash {
             http: client,
@@ -54,6 +54,7 @@ impl<'a> Stash<'a> {
         }
     }
     
+    /// Get a reference to the list of projects 
     pub fn projects(&self) -> Projects {
         Projects::new(self)
     }
