@@ -117,7 +117,7 @@ impl<'a> Stash<'a> {
         let mut body = String::new();
         
        try!(rsp.read_to_string(&mut body));
-       trace!("Received body: {}", body)
+       trace!("Received body: {}", body);
        Ok(try!(serde_json::from_str::<T>(&body)))
         //match rsp.status {
         //    _ => Ok(try!(serde_json::from_str::<T>(&body))),
