@@ -22,11 +22,7 @@ build:
     # http://devcenter.wercker.com/docs/steps/index.html
   steps:
 	- script:
-		name: Install build dependencies
-		code: |-
+		name: Install build dependencies and run cargo test
+		code: |
 	      sudo apt-get update && apt-get install -y libssl-dev
-    - script:
-        name: Run Cargo
-        code: |
           cargo test
-
