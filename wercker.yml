@@ -20,9 +20,9 @@ build:
     # Steps make up the actions in your pipeline
     # Read more about steps on our dev center:
     # http://devcenter.wercker.com/docs/steps/index.html
-  steps:
-	- script:
-		name: Install build dependencies and run cargo test
-		code: |
-	      sudo apt-get update && apt-get install -y libssl-dev
-          cargo test
+    steps:
+        - script:
+            name: Install build dependencies and run cargo test
+            code: |
+                sudo apt-get update && apt-get install -y libssl-dev
+                cargo test
