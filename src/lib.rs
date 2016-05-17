@@ -23,7 +23,8 @@ pub use errors::StashError;
 use core::{Projects};
 use repos::{ProjectRepositories};
 
-use hyper::header::{Authorization, Basic};
+use hyper::header::{Authorization, Basic, ContentType, Headers};
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use hyper::method::Method;
 use hyper::client::RequestBuilder;
 use hyper::status::StatusCode;
@@ -68,21 +69,28 @@ impl<'a> Stash<'a> {
     {
         ProjectRepositories::new(self, project)
     }
+    
+    fn content_type(&self) -> ContentType {
+        ContentType(Mime(TopLevel::Application, SubLevel::Json,
+                         vec![(Attr::Charset, Value::Utf8)]))
+    }
 
     fn generate_request(&self, method: Method, uri: &str) -> RequestBuilder {
         let url = format!("{}{}", self.host, uri);
         trace!("Sending {:#?} request to {}", method, url);
         
+        let mut headers = Headers::new();
+        headers.set(self.content_type());
+        
         match self.credentials {
-            Credentials::OAuth(ref token) => {
-                self.http.request(method, &url).header(Authorization(format!("token {}", token)))
-            }
-            Credentials::Basic(ref user, ref password) => {
-                self.http.request(method, &url).header(Authorization(
-                                                        Basic { username: user.to_owned(),
-                                                        password: Some(password.to_owned()) }))
-            }
+            Credentials::OAuth(ref token) =>
+                headers.set(Authorization(format!("token {}", token))),
+            Credentials::Basic(ref user, ref password) =>
+                headers.set(Authorization( Basic { username: user.to_owned(),
+                                                   password: Some(password.to_owned()) }))
         }
+        
+        self.http.request(method, &url).headers(headers)
     }
     
     fn get<T>(&self, uri: &str) -> Result<T, StashError>
@@ -136,5 +144,27 @@ impl<'a> Stash<'a> {
             }
             _ => Ok(try!(serde_json::from_str::<T>(&body))),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use hyper::Client;
+    use hyper::header::{ContentType};
+    use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+    use super::*;
+    
+    #[test]
+    fn test_request_content_type() {
+        // test that the generated request from Stash client
+        // has correct information on it
+        let h = "http://hostname.com";
+        let cred = Credentials::OAuth("mytoken".to_owned());
+        let hyper = Client::new();
+        let stash = Stash::new(h, &hyper, cred);
+        let ct = stash.content_type();
+        
+        assert_eq!(ct, ContentType(Mime(TopLevel::Application, SubLevel::Json,
+                                     vec![(Attr::Charset, Value::Utf8)])));
     }
 }
