@@ -1,13 +1,15 @@
 //! Stash is an (experimental) library for using the Atlassian Stash REST API.
 
-#![crate_type="lib"]
-
-#[macro_use]
-extern crate serializable_enum;
 extern crate hyper;
 extern crate serde;
 extern crate serde_json;
 extern crate url;
+
+#[macro_use]
+extern crate serializable_enum;
+
+#[macro_use]
+extern crate log;
 
 use serde::de::Deserialize;
 
@@ -24,6 +26,7 @@ use repos::{ProjectRepositories};
 use hyper::header::{Authorization, Basic};
 use hyper::method::Method;
 use hyper::client::RequestBuilder;
+use hyper::status::StatusCode;
 
 
 use std::io::Read;
@@ -54,11 +57,12 @@ impl<'a> Stash<'a> {
         }
     }
     
-    /// Get a reference to the list of projects 
+    /// Get a reference to the list of projects in Stash 
     pub fn projects(&self) -> Projects {
         Projects::new(self)
     }
     
+    /// Get a reference to the list of source repositories for a given project key
     pub fn project_repos<T>(&self, project: T) -> ProjectRepositories
         where T: Into<String>
     {
@@ -67,6 +71,7 @@ impl<'a> Stash<'a> {
 
     fn generate_request(&self, method: Method, uri: &str) -> RequestBuilder {
         let url = format!("{}{}", self.host, uri);
+        trace!("Sending {:#?} request to {}", method, url);
         
         match self.credentials {
             Credentials::OAuth(ref token) => {
@@ -103,7 +108,8 @@ impl<'a> Stash<'a> {
     }
 
     fn request<T>(&self, method: Method, uri: &str, body: Option<&'a [u8]>) -> Result<T, StashError>
-        where T: Deserialize {
+        where T: Deserialize
+    {
         let builder = self.generate_request(method, uri);
         let mut rsp = try!(match body {
             Some(ref b) => builder.body(*b).send(),
@@ -113,10 +119,22 @@ impl<'a> Stash<'a> {
         // optimize to get content length
         let mut body = String::new();
         
-       try!(rsp.read_to_string(&mut body));
-       Ok(try!(serde_json::from_str::<T>(&body)))
-        //match rsp.status {
-        //    _ => Ok(try!(serde_json::from_str::<T>(&body))),
-        //}
+        try!(rsp.read_to_string(&mut body));
+        debug!("response {:#?} {:#?} {:#?}", rsp.status, rsp.headers, body);
+        
+        match rsp.status {
+            // 400, 401, 403, 404, 409 will generate errors from API
+            StatusCode::BadRequest |
+            StatusCode::Unauthorized |
+            StatusCode::Forbidden |
+            StatusCode::NotFound |
+            StatusCode::Conflict => {
+                Err(StashError::Client {
+                    code: rsp.status,
+                    error: try!(serde_json::from_str::<ClientError>(&body)),
+                })
+            }
+            _ => Ok(try!(serde_json::from_str::<T>(&body))),
+        }
     }
 }

@@ -1,3 +1,16 @@
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ClientError {
+    pub errors: Vec<ErrorMessage>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ErrorMessage {
+    pub context: Option<String>,
+    pub message: String,
+    #[serde(rename="exceptionName")]
+    pub exception_name: Option<String>
+}
+
 /// A generic struct that represents the paged API responses that the
 /// Stash API returns for certain endpoints.
 #[derive(Debug, Deserialize, PartialEq)]
@@ -19,6 +32,9 @@ pub struct ProjectListParams {
 }
 
 impl ProjectListParams {
+    pub fn new() -> ProjectListParams {
+        ProjectListParams { ..Default::default() }
+    }
     pub fn builder() -> ProjectListParamsBuilder {
         ProjectListParamsBuilder::new()
     }
@@ -31,6 +47,7 @@ impl ProjectListParams {
             let query_string = form_urlencoded::Serializer::new(String::new())
                 .extend_pairs(&self.params)
                 .finish();
+            trace!("ProjectListParams.to_query_string={}", query_string);
             Some(query_string)
         }
     }
