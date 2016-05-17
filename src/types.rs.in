@@ -1,3 +1,16 @@
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ClientError {
+    pub errors: Vec<ErrorMessage>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ErrorMessage {
+    pub context: Option<String>,
+    pub message: String,
+    #[serde(rename="exceptionName")]
+    pub exception_name: Option<String>
+}
+
 /// A generic struct that represents the paged API responses that the
 /// Stash API returns for certain endpoints.
 #[derive(Debug, Deserialize, PartialEq)]

@@ -3,14 +3,20 @@
 use std::error::Error as StdError;
 use std::io::Error as IoError;
 use serde_json::error::Error as SerdeError;
+use hyper::status::StatusCode;
 use hyper::Error as HyperError;
+use types::ClientError;
 
 #[derive(Debug)]
 pub enum StashError {
     Serialization(SerdeError),
     Http(HyperError),
     IO(IoError),
-    Other(String)
+    Other(String),
+    Client {
+        code: StatusCode,
+        error: ClientError
+    }
 }
 
 impl StdError for StashError {
@@ -20,6 +26,13 @@ impl StdError for StashError {
             StashError::Http(ref e) => e.description(),
             StashError::IO(ref e) => e.description(),
             StashError::Other(ref e) => &e[..],
+            StashError::Client { ref error, .. } => {
+                if error.errors.len() == 1 {
+                    &error.errors[0].message
+                } else {
+                    "Multiple errors encountered"
+                }
+            }
         }
     }
     
