@@ -1,4 +1,4 @@
-# stash-rs
+# stash-rs [![Master branch build status](https://app.wercker.com/status/daab2a54e88010b7b0e5906d855435e2/s/master "wercker status")](https://app.wercker.com/project/bykey/daab2a54e88010b7b0e5906d855435e2)
 
 An (experimental) Rust library for interacting with the Atlassian Stash API.
 
