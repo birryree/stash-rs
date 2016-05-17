@@ -1,13 +1,15 @@
 //! Stash is an (experimental) library for using the Atlassian Stash REST API.
 
-#![crate_type="lib"]
-
-#[macro_use]
-extern crate serializable_enum;
 extern crate hyper;
 extern crate serde;
 extern crate serde_json;
 extern crate url;
+
+#[macro_use]
+extern crate serializable_enum;
+
+#[macro_use]
+extern crate log;
 
 use serde::de::Deserialize;
 
@@ -67,6 +69,7 @@ impl<'a> Stash<'a> {
 
     fn generate_request(&self, method: Method, uri: &str) -> RequestBuilder {
         let url = format!("{}{}", self.host, uri);
+        trace!("Sending request to {}", url);
         
         match self.credentials {
             Credentials::OAuth(ref token) => {
