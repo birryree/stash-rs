@@ -1,10 +1,10 @@
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ClientError {
-    pub errors: Vec<ErrorMessage>,
+    pub errors: Vec<ApiMessage>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct ErrorMessage {
+pub struct ApiMessage {
     pub context: Option<String>,
     pub message: String,
     #[serde(rename="exceptionName")]
@@ -271,4 +271,23 @@ impl ProjectParams {
     pub fn builder() -> ProjectParamsBuilder {
         ProjectParamsBuilder::new()
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RepositoryHookDetails {
+    key: String,
+    name: String,
+    #[serde(rename="type")]
+    hook_type: RepositoryHookType,
+    description: String,
+    version: String,
+    #[serde(rename="configFormKey")]
+    config_form_key: Option<String>
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RepositoryHook {
+    details: RepositoryHookDetails,
+    enabled: bool,
+    configure: bool    
 }

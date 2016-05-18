@@ -105,8 +105,10 @@ impl<'a> Stash<'a> {
         self.request(Method::Post, uri, Some(body))
     }
     
-    fn delete(&self, uri: &str) -> Result<(), StashError> {
-        self.request::<()>(Method::Delete, uri, None)
+    fn delete<T>(&self, uri: &str) -> Result<T, StashError>
+        where T: Deserialize
+    {
+        self.request(Method::Delete, uri, None)
     }
     
     fn put<T>(&self, uri: &str, body: &[u8]) -> Result<T, StashError>

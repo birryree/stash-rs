@@ -93,6 +93,27 @@ impl_as_ref_from_str! {
     StashError::Other
 }
 
+serializable_enum! {
+    /// Enumeration for Stash Repository Hook types
+    #[derive(Clone, Debug, PartialEq)]
+    pub enum RepositoryHookType {
+        /// PRE_RECEIVE repo hook
+        PreReceive,
+        
+        /// POST_RECEIVE repo hook
+        PostReceive
+    }
+    RepositoryHookTypeVisitor
+}
+
+impl_as_ref_from_str! {
+    RepositoryHookType {
+        PreReceive => "PRE_RECEIVE",
+        PostReceive => "POST_RECEIVE",
+    }
+    StashError::Other
+}
+
 #[cfg(test)]
 mod tests {
     use serde::ser::Serialize;
@@ -247,6 +268,14 @@ mod tests {
                                (r#""INITIALISING""#, RepositoryState::Initialising),
                                (r#""INITIALISATION_FAILED""#, RepositoryState::InitFailed)] {
             assert_eq!(serde_json::from_str::<RepositoryState>(value).unwrap(), e);
+        }
+    }
+    
+    #[test]
+    fn deserialize_repository_hook_type() {
+        for (value, e) in vec![(r#""PRE_RECEIVE""#, RepositoryHookType::PreReceive),
+                               (r#""POST_RECEIVE""#, RepositoryHookType::PostReceive)] {
+            assert_eq!(serde_json::from_str::<RepositoryHookType>(value).unwrap(), e);
         }
     }
 }

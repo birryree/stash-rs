@@ -8,6 +8,7 @@ pub struct Projects<'a> {
 }
 
 impl<'a> Projects<'a> {
+    /// Returns a new Projects object
     pub fn new(stash: &'a Stash<'a>) -> Projects<'a> {
         Projects { stash: stash }
     }
@@ -18,19 +19,19 @@ impl<'a> Projects<'a> {
    
     /// Get project by a project key 
     pub fn get_project(&self, key: &str) -> Result<Project, StashError> {
-        self.stash.get::<Project>(&self.resource(&format!("/{}", key)))
+        self.stash.get(&self.resource(&format!("/{}", key)))
     }
     
     /// Create a new project.
     pub fn create_project(&self, params: &ProjectParams) -> Result<Project, StashError> {
         let data = try!(serde_json::to_string(&params));
-        self.stash.post::<Project>(&self.resource(""), data.as_bytes())
+        self.stash.post(&self.resource(""), data.as_bytes())
     }
 
     /// Updates a project 
     pub fn update_project(&self, key: &str, params: &ProjectParams) -> Result<Project, StashError> {
         let data = try!(serde_json::to_string(&params));
-        self.stash.put::<Project>(&self.resource(&format!("/{}", key)), data.as_bytes())
+        self.stash.put(&self.resource(&format!("/{}", key)), data.as_bytes())
     }
     
     /// Deletes a project by its key
@@ -44,11 +45,11 @@ impl<'a> Projects<'a> {
         if let Some(query) = params.to_query_string() {
             uri.push(query);
         }
-        self.stash.get::<PagedResponse<Project>>(&uri.join("?"))
+        self.stash.get(&uri.join("?"))
     }
 
     /// Fetches all repositories under a project.
     pub fn repos(&self, key: &str) -> Result<PagedResponse<Repository>, StashError> {
-        self.stash.get::<PagedResponse<Repository>>(&self.resource(&format!("/{}/repos", key)))
+        self.stash.get(&self.resource(&format!("/{}/repos", key)))
     }
 }
