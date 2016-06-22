@@ -5,11 +5,8 @@ extern crate serde;
 extern crate serde_json;
 extern crate url;
 
-#[macro_use]
-extern crate serializable_enum;
-
-#[macro_use]
-extern crate log;
+#[macro_use] extern crate serializable_enum;
+#[macro_use] extern crate log;
 
 use serde::de::Deserialize;
 

@@ -12,6 +12,8 @@ Stash is a wrapper around the Atlassian Stash API, which provides typesafe build
 
 ## Example Usage
 
+TBD
+
 ## Supported APIs
 
 API support is built into the library as I need it, so I may not personally implement every bit functionality that the Stash API supports.
@@ -19,6 +21,15 @@ API support is built into the library as I need it, so I may not personally impl
 The currently supported APIs are:
 
 * Parts of [Stash core](https://developer.atlassian.com/static/rest/stash/latest/stash-rest.html)
+
+## Information for Building Locally
+
+- Continuous integration is currently performed on Debian Jessie using Rust 1.8-stable.
+- Development is done using Rust 1.8 on Mac OSX El Capitan
+
+Build dependencies are:
+
+* OpenSSL headers (Debian users can install `libssl-dev` for this)
 
 ## License
 
